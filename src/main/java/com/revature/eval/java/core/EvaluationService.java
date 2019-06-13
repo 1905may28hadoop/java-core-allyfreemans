@@ -1,5 +1,7 @@
 package com.revature.eval.java.core;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,8 +16,13 @@ public class EvaluationService {
 	 * @return
 	 */
 	public String acronym(String phrase) {
-		// TODO Write an implementation for this method declaration
-		return null;
+		String[] p = phrase.split("[\\W\\s]");
+		String returner = "";
+		for (String s : p) {
+			if (!s.isEmpty())
+				returner = returner + s.charAt(0);
+		}
+		return returner.toUpperCase();
 	}
 
 	/**
@@ -34,8 +41,46 @@ public class EvaluationService {
 	 * @return
 	 */
 	public int getScrabbleScore(String string) {
-		// TODO Write an implementation for this method declaration
-		return 0;
+		int score = 0;
+		for (char c : (string.toUpperCase()).toCharArray()) {
+
+			if (64 < (int) c && (int) c > 91)
+				throw new IllegalArgumentException();
+
+			switch (c) {
+			case 'D':
+			case 'G':
+				score += 2;
+				break;
+			case 'B':
+			case 'C':
+			case 'M':
+			case 'P':
+				score += 3;
+				break;
+			case 'F':
+			case 'H':
+			case 'V':
+			case 'W':
+			case 'Y':
+				score += 4;
+				break;
+			case 'K':
+				score += 5;
+				break;
+			case 'J':
+			case 'X':
+				score += 8;
+				break;
+			case 'Q':
+			case 'Z':
+				score += 10;
+				break;
+			default:
+				score += 1;
+			}
+		}
+		return score;
 	}
 
 	/**
@@ -70,8 +115,31 @@ public class EvaluationService {
 	 * NANP-countries, only 1 is considered a valid country code.
 	 */
 	public String cleanPhoneNumber(String string) {
-		// TODO Write an implementation for this method declaration
-		return null;
+		String newString = "";
+		for (int i = 0; i < string.length(); i++) {
+			try {
+				newString = newString + Integer.parseInt(String.valueOf(string.charAt(i)));
+			} catch (NumberFormatException e) {
+				
+				 if ((string.charAt(i) != ' ') && (string.charAt(i) != '(') &&
+				 (string.charAt(i) != ')') && (string.charAt(i) != '-') && (string.charAt(i)
+				 != '.') && (string.charAt(i) != ',') && (string.charAt(i) != '+'))
+					 throw new IllegalArgumentException();
+			}
+		}
+		if ((newString.length() > 10) || (newString.length() < 7)) {
+
+			if (newString.length() == 11) {
+
+				if (newString.charAt(0) != '1') // remove first char if it's one
+					throw new IllegalArgumentException();
+				newString = newString.substring(1);
+
+			} else
+				throw new IllegalArgumentException();
+
+		}
+		return newString;
 	}
 
 	/**
@@ -84,8 +152,17 @@ public class EvaluationService {
 	 * @return
 	 */
 	public Map<String, Integer> wordCount(String string) {
-		// TODO Write an implementation for this method declaration
-		return null;
+		Map<String, Integer> map = new HashMap<String, Integer>();
+		String[] p = string.split("[\\W\\s]");
+		for (String s : p) {
+			if (!s.equals("")) {
+				if (map == null || !map.containsKey(s))
+					map.put(s, 1);
+				else
+					map.replace(s, map.get(s) + 1);
+			}
+		}
+		return map;
 	}
 
 	/**
@@ -127,8 +204,37 @@ public class EvaluationService {
 		private List<T> sortedList;
 
 		public int indexOf(T t) {
-			// TODO Write an implementation for this method declaration
-			return 0;
+
+			int index = sortedList.size() / 2, trackedIndex = 0;
+			List<T> copyList = sortedList;
+
+			while (index > -1 && index < copyList.size() && copyList.size() != 0) {
+				int comparison = compare(copyList.get(index), t);
+				if (comparison == 0) { // If it matches, return that index
+					return trackedIndex + index;
+
+				} else if (comparison < 0) {
+					if (index == copyList.size() - 1) {
+						return -1 * trackedIndex + index - 2;
+					}
+					copyList = copyList.subList(index + 1, copyList.size());
+					trackedIndex += index + 1;
+
+				} else {
+					copyList = copyList.subList(0, index);
+
+				}
+				index = copyList.size() / 2;
+			}
+			return -1 * trackedIndex + index - 1;
+		}
+
+		public int compare(T a, T b) {
+			if (a instanceof Number)
+				return (Integer) a - (Integer) b;
+			if (a instanceof String)
+				return ((String) a).compareTo((String) b);
+			return -1;
 		}
 
 		public BinarySearch(List<T> sortedList) {
@@ -162,8 +268,10 @@ public class EvaluationService {
 	 * @return
 	 */
 	public boolean isArmstrongNumber(int input) {
-		// TODO Write an implementation for this method declaration
-		return false;
+		int sumOfDigits = 0, power = Integer.toString(input).length();
+		for (int i = 0; i < power; i++)
+			sumOfDigits += Math.pow(Integer.parseInt(Integer.toString(input).substring(i, i + 1)), power);
+		return sumOfDigits == input;
 	}
 
 	/**
@@ -177,10 +285,29 @@ public class EvaluationService {
 	 * @return
 	 */
 	public List<Long> calculatePrimeFactorsOf(long l) {
-		// TODO Write an implementation for this method declaration
-		return null;
+
+		List<Long> primeFactors = new ArrayList<>();
+		for (long i = 2; i < l; i++) {
+			if ((l % i == 0) && (isPrime(i))) {
+				long result = l;
+				while (result % i == 0) {
+					primeFactors.add(i);
+					result /= i;
+				}
+			}
+		}
+		if (l <= 2) // Catch the case where the number is 2 or 1
+			primeFactors.add(l);
+		return primeFactors;
 	}
 
+	public boolean isPrime(long num) {
+		for (long i = num - 1; i > 1; i--) {
+			if (num % i == 0)
+				return false;
+		}
+		return true;
+	}
 
 	/**
 	 * 8-9. Create an implementation of the atbash cipher, an ancient encryption
@@ -215,8 +342,27 @@ public class EvaluationService {
 		 * @return
 		 */
 		public static String encode(String string) {
-			// TODO Write an implementation for this method declaration
-			return null;
+			String newString = "";
+			char[] charArray = (string.toLowerCase()).toCharArray();
+			
+			for (int i = 0; i < charArray.length; i++) {
+
+				if (96 <= charArray[i] && charArray[i] <= 122) {
+
+					newString = newString.concat("" + (char) (122 - (charArray[i] - 97)));
+
+					if ((newString.length() + 1) % 6 == 0 && ((i + 1) != charArray.length - 1))
+						newString = newString.concat(" ");
+
+				} else if (48 <= charArray[i] && charArray[i] <= 57) {
+
+					newString = newString.concat("" + charArray[i]);
+
+					if ((newString.length() + 1) % 6 == 0 && ((i + 1) != charArray.length - 1))
+						newString = newString.concat(" ");
+				}
+			}
+			return newString;
 		}
 
 		/**
@@ -226,8 +372,7 @@ public class EvaluationService {
 		 * @return
 		 */
 		public static String decode(String string) {
-			// TODO Write an implementation for this method declaration
-			return null;
+			return encode(string).replaceAll(" ", "");
 		}
 	}
 
@@ -259,8 +404,34 @@ public class EvaluationService {
 	 * @return
 	 */
 	public int solveWordProblem(String string) {
-		// TODO Write an implementation for this method declaration
-		return 0;
+		String[] entries = string.split("\\?| ");
+		int op1, op2;
+
+		op1 = Integer.parseInt(entries[2]);
+
+		try {
+			op2 = Integer.parseInt(entries[4]);
+		} catch (NumberFormatException e) {
+			op2 = Integer.parseInt(entries[5]);
+		}
+
+		switch (entries[3]) {
+		case "plus":
+		case "add":
+		case "added":
+			return op1 + op2;
+		case "sub":
+		case "subtracted":
+		case "minus":
+			return op1 - op2;
+		case "divided":
+		case "div":
+		case "division":
+		case "divide":
+			return op1 / op2;
+		default:
+			return op1 * op2;
+		}
 	}
 
 }
