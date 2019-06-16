@@ -1,6 +1,7 @@
 package com.revature.eval.java.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,12 +42,12 @@ public class EvaluationService {
 	 * @return
 	 */
 	public int getScrabbleScore(String string) {
+
+		if (!string.matches("([a-zA-Z])+"))
+			throw new IllegalArgumentException();
+
 		int score = 0;
 		for (char c : (string.toUpperCase()).toCharArray()) {
-
-			if (64 < (int) c && (int) c > 91)
-				throw new IllegalArgumentException();
-
 			switch (c) {
 			case 'D':
 			case 'G':
@@ -115,31 +116,12 @@ public class EvaluationService {
 	 * NANP-countries, only 1 is considered a valid country code.
 	 */
 	public String cleanPhoneNumber(String string) {
-		String newString = "";
-		for (int i = 0; i < string.length(); i++) {
-			try {
-				newString = newString + Integer.parseInt(String.valueOf(string.charAt(i)));
-			} catch (NumberFormatException e) {
-				
-				 if ((string.charAt(i) != ' ') && (string.charAt(i) != '(') &&
-				 (string.charAt(i) != ')') && (string.charAt(i) != '-') && (string.charAt(i)
-				 != '.') && (string.charAt(i) != ',') && (string.charAt(i) != '+'))
-					 throw new IllegalArgumentException();
-			}
-		}
-		if ((newString.length() > 10) || (newString.length() < 7)) {
 
-			if (newString.length() == 11) {
+		if (!string.matches(
+				"(\\s{0,}\\+?\\s{0,}1{1})?(\\s{0,}[\\.\\,\\- ]?\\s{0,})(\\(?[2-9]{1}[0-9]{2}\\)?)(\\s{0,}[\\.\\,\\- ]?\\s{0,})(\\(?[2-9]{1}[0-9]{2}\\)?)(\\s{0,}[\\.\\,\\- ]?\\s{0,})([0-9]{4})(\\s{0,})"))
+			throw new IllegalArgumentException();
 
-				if (newString.charAt(0) != '1') // remove first char if it's one
-					throw new IllegalArgumentException();
-				newString = newString.substring(1);
-
-			} else
-				throw new IllegalArgumentException();
-
-		}
-		return newString;
+		return string.replaceAll("(\\+?[1])?(\\s{0,}[\\.\\,\\- \\(\\)\\s]?\\s{0,})+", "");
 	}
 
 	/**
@@ -215,26 +197,28 @@ public class EvaluationService {
 
 				} else if (comparison < 0) {
 					if (index == copyList.size() - 1) {
-						return -1 * trackedIndex + index - 2;
+						return -1 * (trackedIndex + index + 2);
 					}
+
 					copyList = copyList.subList(index + 1, copyList.size());
 					trackedIndex += index + 1;
 
-				} else {
+				} else
 					copyList = copyList.subList(0, index);
 
-				}
 				index = copyList.size() / 2;
 			}
-			return -1 * trackedIndex + index - 1;
+			return -1 * (trackedIndex + index + 1);
 		}
 
 		public int compare(T a, T b) {
 			if (a instanceof Number)
 				return (Integer) a - (Integer) b;
-			if (a instanceof String)
+			try {
+				return Integer.parseInt((String) a) - Integer.parseInt((String) b);
+			} catch (NumberFormatException e) {
 				return ((String) a).compareTo((String) b);
-			return -1;
+			}
 		}
 
 		public BinarySearch(List<T> sortedList) {
@@ -335,6 +319,8 @@ public class EvaluationService {
 	 */
 	static class AtbashCipher {
 
+		static Map<String, String> map = constructCipherMap();
+
 		/**
 		 * Question 8
 		 * 
@@ -342,27 +328,27 @@ public class EvaluationService {
 		 * @return
 		 */
 		public static String encode(String string) {
+			string = string.toLowerCase().replaceAll("\\s", "");
+
 			String newString = "";
-			char[] charArray = (string.toLowerCase()).toCharArray();
-			
-			for (int i = 0; i < charArray.length; i++) {
 
-				if (96 <= charArray[i] && charArray[i] <= 122) {
-
-					newString = newString.concat("" + (char) (122 - (charArray[i] - 97)));
-
-					if ((newString.length() + 1) % 6 == 0 && ((i + 1) != charArray.length - 1))
-						newString = newString.concat(" ");
-
-				} else if (48 <= charArray[i] && charArray[i] <= 57) {
-
-					newString = newString.concat("" + charArray[i]);
-
-					if ((newString.length() + 1) % 6 == 0 && ((i + 1) != charArray.length - 1))
-						newString = newString.concat(" ");
+			for (int i = 0; i < string.length(); i++) {
+				if (map.get(string.substring(i, i + 1)) != null) {
+					if (((newString.length() + 1) % 6 == 0))
+						newString = newString + " ";
+					newString = newString + map.get(string.substring(i, i + 1));
 				}
 			}
 			return newString;
+		}
+
+		public static Map<String, String> constructCipherMap() {
+			Map<String, String> map = new HashMap<>();
+			for (int i = 96; i < 123; i++)
+				map.put(((char) i) + "", ((char) (122 - (i - 97))) + "");
+			for (int i = 0; i < 10; i++)
+				map.put(i + "", i + "");
+			return map;
 		}
 
 		/**
@@ -404,34 +390,29 @@ public class EvaluationService {
 	 * @return
 	 */
 	public int solveWordProblem(String string) {
-		String[] entries = string.split("\\?| ");
-		int op1, op2;
+		// what is Integer (plus|added to|minus|subtracted by|multiplied by|divided by|) Integer ?
+		if (!string.matches(
+				"(\\s{0,1})(What)(\\s{0,1})(is)(\\s{0,1})(\\-?[0-9]{1,})(\\s{0,1})(plus|added\\s{0,1}to|minus|subtracted\\s{0,1}by|multiplied\\s{0,1}by|divided\\s{0,1}by)(\\s{0,1})(\\-?[0-9]{1,})(\\s{0,1})(\\?)?"))
+			throw new IllegalArgumentException();
 
-		op1 = Integer.parseInt(entries[2]);
+		List<String> entries = new ArrayList<String>(Arrays.asList((string.toLowerCase().split("(what|by|is|\\?| )"))));
+		entries.removeAll(Arrays.asList(""));
 
-		try {
-			op2 = Integer.parseInt(entries[4]);
-		} catch (NumberFormatException e) {
-			op2 = Integer.parseInt(entries[5]);
-		}
-
-		switch (entries[3]) {
+		switch (entries.get(1)) {
 		case "plus":
-		case "add":
 		case "added":
-			return op1 + op2;
-		case "sub":
-		case "subtracted":
+			return Integer.parseInt(entries.get(0)) + Integer.parseInt(entries.get(2));
 		case "minus":
-			return op1 - op2;
+		case "subtracted":
+			return Integer.parseInt(entries.get(0)) - Integer.parseInt(entries.get(2));
+		case "multiplied":
+			return Integer.parseInt(entries.get(0)) * Integer.parseInt(entries.get(2));
 		case "divided":
-		case "div":
-		case "division":
-		case "divide":
-			return op1 / op2;
+			if (Integer.parseInt(entries.get(2)) == 0)
+				throw new IllegalArgumentException();
+			return Integer.parseInt(entries.get(0)) / Integer.parseInt(entries.get(2));
 		default:
-			return op1 * op2;
+			throw new IllegalArgumentException();
 		}
 	}
-
 }
