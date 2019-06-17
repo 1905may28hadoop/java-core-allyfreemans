@@ -116,12 +116,11 @@ public class EvaluationService {
 	 * NANP-countries, only 1 is considered a valid country code.
 	 */
 	public String cleanPhoneNumber(String string) {
-
+		string = string.replaceAll("\\s", "");
 		if (!string.matches(
-				"(\\s{0,}\\+?\\s{0,}1{1})?(\\s{0,}[\\.\\,\\- ]?\\s{0,})(\\(?[2-9]{1}[0-9]{2}\\)?)(\\s{0,}[\\.\\,\\- ]?\\s{0,})(\\(?[2-9]{1}[0-9]{2}\\)?)(\\s{0,}[\\.\\,\\- ]?\\s{0,})([0-9]{4})(\\s{0,})"))
+				"(\\+?1{1})?([\\.\\,\\-]?)(\\(?[2-9]{1}[0-9]{2}\\)?)([\\.\\,\\-]?)(\\(?[2-9]{1}[0-9]{2}\\)?)([\\.\\,\\-]?)([0-9]{4})"))
 			throw new IllegalArgumentException();
-
-		return string.replaceAll("(\\+?[1])?(\\s{0,}[\\.\\,\\- \\(\\)\\s]?\\s{0,})+", "");
+		return string.replaceAll("(^\\+?1)?(\\W)+", "");
 	}
 
 	/**
@@ -186,26 +185,20 @@ public class EvaluationService {
 		private List<T> sortedList;
 
 		public int indexOf(T t) {
-
 			int index = sortedList.size() / 2, trackedIndex = 0;
 			List<T> copyList = sortedList;
-
 			while (index > -1 && index < copyList.size() && copyList.size() != 0) {
 				int comparison = compare(copyList.get(index), t);
 				if (comparison == 0) { // If it matches, return that index
 					return trackedIndex + index;
-
 				} else if (comparison < 0) {
 					if (index == copyList.size() - 1) {
 						return -1 * (trackedIndex + index + 2);
 					}
-
 					copyList = copyList.subList(index + 1, copyList.size());
 					trackedIndex += index + 1;
-
 				} else
 					copyList = copyList.subList(0, index);
-
 				index = copyList.size() / 2;
 			}
 			return -1 * (trackedIndex + index + 1);
@@ -391,8 +384,9 @@ public class EvaluationService {
 	 */
 	public int solveWordProblem(String string) {
 		// what is Integer (plus|added to|minus|subtracted by|multiplied by|divided by|) Integer ?
+		string = string.toLowerCase();
 		if (!string.matches(
-				"(\\s{0,1})(What)(\\s{0,1})(is)(\\s{0,1})(\\-?[0-9]{1,})(\\s{0,1})(plus|added\\s{0,1}to|minus|subtracted\\s{0,1}by|multiplied\\s{0,1}by|divided\\s{0,1}by)(\\s{0,1})(\\-?[0-9]{1,})(\\s{0,1})(\\?)?"))
+				"(\\s{0,1})(what)(\\s{0,1})(is)(\\s{0,1})(\\-?[0-9]{1,})(\\s{0,1})(plus|added\\s{0,1}to|minus|subtracted\\s{0,1}by|multiplied\\s{0,1}by|divided\\s{0,1}by)(\\s{0,1})(\\-?[0-9]{1,})(\\s{0,1})(\\?)?"))
 			throw new IllegalArgumentException();
 
 		List<String> entries = new ArrayList<String>(Arrays.asList((string.toLowerCase().split("(what|by|is|\\?| )"))));
